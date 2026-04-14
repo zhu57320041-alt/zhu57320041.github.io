@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>东职专属DZTI测试</title>
+    <style>
+        /* 简约干净的手机适配样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: #2c3e50;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            padding: 24px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 20px;
+        }
+        .question-card {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 18px;
+            padding: 20px 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: all 0.1s ease;
+        }
+        .q-title {
+            font-weight: 600;
+            margin-bottom: 18px;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            background: #f8f9fa;
+            border-radius: 40px;
+            border: 1.5px solid #f8f9fa;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .option-item.selected {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        .option-item input {
+            display: none;
+        }
+        .option-prefix {
+            font-weight: 700;
+            width: 32px;
+            height: 32px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            color: #34495e;
+        }
+        .option-text {
+            flex: 1;
+        }
+        .btn {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: background 0.2s;
+            border: none;
+        }
+        .btn:hover {
+            background: #1a252f;
+        }
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .result-area {
+            margin-top: 30px;
+            padding: 24px 16px;
+            background: #f1f9fe;
+            border-radius: 20px;
+            text-align: center;
+        }
+        .result-type {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin: 10px 0;
+        }
+        .result-desc {
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        .restart-btn {
+            background: transparent;
+            border: 1.5px solid #2c3e50;
+            color: #2c3e50;
+            margin-top: 16px;
+            padding: 12px;
+            font-size: 1rem;
+        }
+        .error-msg {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            color: #95a5a6;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="app">
+    <!-- 开始界面 -->
+    <div id="start-screen">
+        <h1>🧠 东职专属DZTI测试</h1>
+             <p style="text-align: center; margin: 30px 0;">点击下方开始，探索你的内在属性</p>
+        <button class="btn" id="start-btn">开始测评</button>
+    </div>
+
+    <!-- 答题界面 (默认隐藏) -->
+    <div id="quiz-screen" style="display: none;">
+        <h1 id="quiz-title">题目 {{ currentIndex + 1 }} / {{ totalQuestions }}</h1>
+        <div class="question-card">
+            <div class="q-title" id="question-text"></div>
+            <div class="options" id="options-container"></div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn" id="prev-btn" style="background: #7f8c8d;" disabled>← 上一题</button>
+            <button class="btn" id="next-btn">下一题 →</button>
+        </div>
+        <button class="btn" id="submit-btn" style="display: none;">查看结果</button>
+        <div id="progress-info" style="text-align: center; margin-top: 16px; color: #7f8c8d;"></div>
+    </div>
+
+    <!-- 结果界面 (默认隐藏) -->
+    <div id="result-screen" style="display: none;">
+        <h1>✨ 你的测评结果</h1>
+        <div class="result-area">
+            <div style="font-size: 1rem; opacity: 0.7;">你的类型是</div>
+            <div class="result-type" id="result-type-display"></div>
+            <div class="result-desc" id="result-desc-display"></div>
+        </div>
+        <button class="btn restart-btn" id="restart-btn">🔄 重新测试</button>
+        <div class="footer">当然，DZTI只是一个小小的标签，你的努力、热爱、坚持都远比任何一种人格类型标签都更加耀眼</div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        "use strict";
+
+
+        const MY_QUESTIONS = [
+            { 
+                text: "小组作业分组时，你通常的做法是：", 
+                options: ["拿出自己的零食分享，边吃边聊分工", "负责想创意、做PPT美化", "主动当组长，盯紧DDL", "默默把最难的技术部分揽下来"] 
+            },
+            { 
+                text: "考试前一周，你的复习模式是：", 
+                options: ["提前一个月按计划复习，现在很稳", "靠老师划的重点和学长笔记高效突击", "拉着同学组队复习，互相帮助", "不擅长背书，但实操考试能拿高分"] 
+            },
+  	     { 
+                text: "周末早晨，你一般是什么状态：", 
+                options: ["昨晚社团活动太嗨，现在补觉", "刚睡醒，先刷会儿美食视频", "已经起床跑步或去图书馆了", "根据自己的其他兴趣爱好，学一门新技能"] 
+            },
+  	     { 
+                text: "社团或班级团建时，你通常扮演什么角色：", 
+                options: ["后勤担当，买物资、记账", "策划者，想新奇的点子", "气氛组，负责热场、带游戏", "技术支援，调音响、剪视频"] 
+            },
+  	     { 
+                text: "社和室友发生小矛盾，你更倾向于怎么解决：", 
+                options: ["写小纸条或发微信，温和表达", "买点零食或奶茶，轻松化解", "主动找对方散步或打球，聊开", "直接定个寝室公约，避免再发生"] 
+            },
+  	     { 
+                text: "学校发布比赛或企业宣讲会，你的反应是：", 
+                options: ["先看是否符合自己的兴趣和能力，再决定参与", "叫上不同专业的朋友跨学科合作", "迅速组队，并做详细的备赛计划", "关注技术实现细节，主动尝试操作"] 
+            },
+  	     { 
+                text: "提到学校周边美食，你通常会：", 
+                options: ["熟悉大部分窗口，能推荐最佳搭配", "经常探店，分享攻略给朋友", "知道几家热门的，喊上好朋友一起去吃", "记不清，看见哪家想吃就去吃"] 
+            },
+        ];
+
+
+        const SCORE_MAP = [
+            [1, 2, 3, 4],  
+            [1, 2, 3, 4],
+            [1, 2, 3, 4],
+            [1, 2, 3, 4],
+            [1, 2, 3, 4],
+            [1, 2, 3, 4],
+            [1, 2, 3, 4],
+        ];
+
+
+const RESULT_MAP = [
+    { min: 22, max: 28, type: "SKIL-L——六边形战士", desc: "小组作业里你承包海报、视频、数据图表；实训课上你动手能力突出。你不喜欢空谈，更相信技术和实操。" },
+    { min: 19, max: 21, type: "EARL-Y——自律行动派", desc: "你是小组作业的领头人，是奖学金名单上的熟面孔，是运动世界跑满额的人。你习惯提前计划，对自己的时间有很强的掌控感。" },
+    { min: 16, max: 18, type: "SUNN-Y——满格小太阳", desc: "你是班级里的开心果、社团里的活力源，是那个愿意给予他人夸奖的“小太阳”。团建时你主动带游戏，朋友低落时你愿意倾听。" },
+    { min: 13, max: 15, type: "CHEC-K——靠谱天花板", desc: "你是班干部、课代表、组长不二人选。做事有条理，重视规则和截止时间。老师或同学交给你的事情，基本不会出错。" },
+    { min: 10, max: 12, type: "IDEA——创意合伙人", desc: "小组作业里你负责头脑风暴，比赛项目中你提供新颖角度。你可能不是最勤奋的，但常常是最有灵气的。" },
+    { min: 7, max: 9, type: "TAST-E——美食品鉴家", desc: "你熟悉学校周边所有美食窗口，知道哪家奶茶三分糖最好喝。你通过美食连接朋友，也乐于分享探店攻略。" },
+    { min: 1, max: 6, type: "WARM——情绪补给站", desc: "你是室友的情感树洞，也是同学眼中的温柔担当。宿舍关系因为你的存在而融洽。" }
+];
+        // ========== 以下代码无需修改，直接使用即可 ==========
+        
+        // 数据校验
+        if (MY_QUESTIONS.length !== SCORE_MAP.length) {
+            console.error("错误: 题目数量和计分行数不匹配！请检查 SCORE_MAP 长度。");
+            alert("配置错误：题目计分规则数量不对，请打开控制台查看。");
+        }
+
+        // 状态管理
+        let currentIndex = 0;
+        let answers = new Array(MY_QUESTIONS.length).fill(-1); // -1 表示未选
+        let totalQuestions = MY_QUESTIONS.length;
+
+        // DOM 元素
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionText = document.getElementById('question-text');
+        const optionsDiv = document.getElementById('options-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const quizTitle = document.getElementById('quiz-title');
+        const progressInfo = document.getElementById('progress-info');
+        const resultTypeDisplay = document.getElementById('result-type-display');
+        const resultDescDisplay = document.getElementById('result-desc-display');
+
+        // 辅助函数
+        function updateProgressText() {
+            if (quizTitle) {
+                quizTitle.textContent = `题目 ${currentIndex + 1} / ${totalQuestions}`;
+            }
+            let answered = answers.filter(a => a !== -1).length;
+            progressInfo.textContent = `已完成 ${answered} / ${totalQuestions} 题`;
+        }
+
+        function checkAllAnswered() {
+            return answers.every(a => a !== -1);
+        }
+
+        // 渲染当前题目
+        function renderQuestion(index) {
+            const q = MY_QUESTIONS[index];
+            questionText.textContent = q.text;
+            
+            let html = '';
+            const letters = ['A', 'B', 'C', 'D'];
+            for (let i = 0; i < q.options.length; i++) {
+                const selected = (answers[index] === i);
+                html += `
+                    <div class="option-item ${selected ? 'selected' : ''}" data-opt-index="${i}">
+                        <div class="option-prefix">${letters[i]}</div>
+                        <div class="option-text">${q.options[i]}</div>
+                    </div>
+                `;
+            }
+            optionsDiv.innerHTML = html;
+
+            // 绑定点击事件
+            document.querySelectorAll('.option-item').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    const idx = parseInt(el.dataset.optIndex);
+                    // 更新答案
+                    answers[index] = idx;
+                    // 重新渲染高亮
+                    renderQuestion(index);
+                    // 更新按钮状态
+                    updateNavButtons();
+                    updateProgressText();
+                    
+                    // 检查是否全部答完，显示提交按钮
+                    if (checkAllAnswered()) {
+                        submitBtn.style.display = 'block';
+                        nextBtn.style.display = 'none';
+                    } else {
+                        submitBtn.style.display = 'none';
+                        nextBtn.style.display = 'block';
+                    }
+                });
+            });
+
+            // 更新标题和导航
+            updateProgressText();
+            updateNavButtons();
+        }
+
+        function updateNavButtons() {
+            prevBtn.disabled = (currentIndex === 0);
+            if (currentIndex === totalQuestions - 1) {
+                if (checkAllAnswered()) {
+                    nextBtn.style.display = 'none';
+                    submitBtn.style.display = 'block';
+                } else {
+                    nextBtn.style.display = 'block';
+                    submitBtn.style.display = 'none';
+                }
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        // 计算总分
+        function calculateTotalScore() {
+            let total = 0;
+            for (let i = 0; i < answers.length; i++) {
+                const optIndex = answers[i];
+                if (optIndex !== -1 && SCORE_MAP[i] && SCORE_MAP[i][optIndex] !== undefined) {
+                    total += SCORE_MAP[i][optIndex];
+                }
+            }
+            return total;
+        }
+
+        // 根据总分获取结果
+        function getResultByScore(score) {
+            for (let r of RESULT_MAP) {
+                if (score >= r.min && score <= r.max) {
+                    return r;
+                }
+            }
+            // 默认返回最后一个
+            return RESULT_MAP[RESULT_MAP.length-1];
+        }
+
+        // 显示结果
+        function showResult() {
+            const total = calculateTotalScore();
+            const result = getResultByScore(total);
+            resultTypeDisplay.textContent = result.type;
+            resultDescDisplay.textContent = result.desc;
+            
+            quizScreen.style.display = 'none';
+            resultScreen.style.display = 'block';
+        }
+
+        // 事件绑定
+        document.getElementById('start-btn').addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'block';
+            currentIndex = 0;
+            answers = new Array(totalQuestions).fill(-1);
+            renderQuestion(currentIndex);
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderQuestion(currentIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (answers[currentIndex] === -1) {
+                alert('请先选择一个选项');
+                return;
+            }
+            if (currentIndex < totalQuestions - 1) {
+                currentIndex++;
+                renderQuestion(currentIndex);
+            }
+        });
+
+        submitBtn.addEventListener('click', () => {
+            if (!checkAllAnswered()) {
+                alert('还有题目未回答');
+                return;
+            }
+            showResult();
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            resultScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+            answers = new Array(totalQuestions).fill(-1);
+            currentIndex = 0;
+        });
+
+        // 初始化时设置标题文字 (可自定义)
+        // 无需额外操作
+
+    })();
+</script>
+</body>
+</html>
